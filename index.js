@@ -12,7 +12,7 @@ app.listen(PORT, () => console.log(`🌐 Server running on port ${PORT}`));
 
 // === CONFIG ===
 const DISCORD_TOKEN = process.env.DISCORD_TOKEN;
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxguWuAppx52YD_sAOZww9Ad-yzcrW0r4tmb1imPtFLjPsREXJ0-GeyW8BVfMHhBXr5/exec"; // 🔹 Thay bằng URL Web App vừa deploy
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxguWuAppx52YD_sAOZww9Ad-yzcrW0r4tmb1imPtFLjPsREXJ0-GeyW8BVfMHhBXr5/exec"; // 🔹 URL Web App của bạn
 
 // === INIT CLIENT ===
 const client = new Client({ intents: [GatewayIntentBits.Guilds] });
@@ -33,30 +33,42 @@ client.on("interactionCreate", async (interaction) => {
   try {
     const url = `${SCRIPT_URL}?unit=${unit}&weight=${weight}`;
     const response = await fetch(url);
-    const text = await response.text();
+    let text = await response.text();
 
-    const color = 0xf97316; // Etsy orange 🧡
+    // 🧹 Làm sạch text: bỏ phần tiêu đề và input trùng
+    text = text
+      .replace(/^📦.*Calculate\*\*\n?/i, "")  // xoá dòng có tiêu đề
+      .replace(/^Input:.*\n?/i, "")           // xoá dòng Input
+      .replace(/────────────────────/g, "")   // xoá thanh gạch ngang
+      .trim();
 
+    // 🧩 Giữ lại phần giá và định dạng rõ ràng
+    const cleaned = text
+      .replace(/\*\*/g, "")   // bỏ ** in đậm
+      .replace(/ ?•/g, "\n•") // format lại danh sách
+      .trim();
+
+    // === Tạo Embed hiển thị Discord ===
     const embed = new EmbedBuilder()
-  .setColor(0xf97316)
-  .setTitle("📦 Etsy Shipping Calculate")
-  .setDescription(`Kết quả tính phí USPS Ground Advantage (Offline Rate)`)
-  .addFields(
-    { name: "Input", value: `⚖️ ${weight} ${unit}`, inline: false },
-    { name: "Result", value: text.replace(/^📦\s\*\*Etsy[\s\S]+?Rate\*\*\n/, "").trim() }
-  )
-  .setFooter({ text: "Eneocare Shipping Tool • 2025" })
-  .setTimestamp();
-
+      .setColor(0xf97316)
+      .setTitle("📦 Etsy Shipping Calculate")
+      .setDescription("Kết quả tính phí USPS Ground Advantage (Offline Rate)")
+      .addFields(
+        { name: "Input", value: `⚖️ ${weight} ${unit}`, inline: false },
+        { name: "Result", value: cleaned || "Không có dữ liệu phù hợp." }
+      )
+      .setFooter({ text: "Eneocare Shipping Tool • 2025" })
+      .setTimestamp();
 
     await interaction.editReply({ embeds: [embed] });
+
   } catch (error) {
     console.error("❌ Error fetching data:", error);
     await interaction.editReply("❌ Có lỗi khi tính phí Etsy Shipping. Vui lòng thử lại!");
   }
 });
 
-// === Register slash command ===
+// === REGISTER SLASH COMMAND ===
 client.on("ready", async () => {
   const commands = [
     {
@@ -89,3 +101,4 @@ client.on("ready", async () => {
 });
 
 client.login(DISCORD_TOKEN);
+
