@@ -35,20 +35,21 @@ client.on("interactionCreate", async (interaction) => {
     const response = await fetch(url);
     let text = await response.text();
 
-    // 🧹 Làm sạch text: bỏ phần tiêu đề và input trùng
+    // 🧹 Làm sạch text khỏi phần tiêu đề & input trùng lặp
     text = text
-      .replace(/^📦.*Calculate\*\*\n?/i, "")  // xoá dòng có tiêu đề
-      .replace(/^Input:.*\n?/i, "")           // xoá dòng Input
-      .replace(/────────────────────/g, "")   // xoá thanh gạch ngang
+      .replace(/^📦.*Calculate.*\n?/gim, "")  // xoá dòng chứa tiêu đề Etsy Shipping Calculate
+      .replace(/^Input:.*\n?/gim, "")         // xoá dòng Input
+      .replace(/────────────────────/g, "")   // bỏ dấu gạch
+      .replace(/\*\*/g, "")                  // bỏ ** markdown
       .trim();
 
-    // 🧩 Giữ lại phần giá và định dạng rõ ràng
+    // 🧩 Giữ lại phần kết quả chính
     const cleaned = text
-      .replace(/\*\*/g, "")   // bỏ ** in đậm
-      .replace(/ ?•/g, "\n•") // format lại danh sách
+      .split("\n")
+      .filter((line) => line && !/^Eneocare/i.test(line)) // bỏ footer trùng
+      .join("\n")
       .trim();
 
-    // === Tạo Embed hiển thị Discord ===
     const embed = new EmbedBuilder()
       .setColor(0xf97316)
       .setTitle("📦 Etsy Shipping Calculate")
@@ -101,4 +102,5 @@ client.on("ready", async () => {
 });
 
 client.login(DISCORD_TOKEN);
+
 
