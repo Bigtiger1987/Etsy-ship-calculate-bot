@@ -38,15 +38,16 @@ client.on("interactionCreate", async (interaction) => {
     const color = 0xf97316; // Etsy orange 🧡
 
     const embed = new EmbedBuilder()
-      .setColor(color)
-      .setTitle("📦 Etsy Shipping Calculate")
-      .setDescription("Kết quả tính phí USPS Ground Advantage (Offline Rate)")
-      .addFields(
-        { name: "Input", value: `⚖️ ${weight} ${unit}`, inline: true },
-        { name: "Result", value: `\`\`\`\n${text}\n\`\`\`` }
-      )
-      .setFooter({ text: "Etsy 2025 • Eneocare" })
-      .setTimestamp();
+  .setColor(0xf97316)
+  .setTitle("📦 Etsy Shipping Calculate")
+  .setDescription(`Kết quả tính phí USPS Ground Advantage (Offline Rate)`)
+  .addFields(
+    { name: "Input", value: `⚖️ ${weight} ${unit}`, inline: false },
+    { name: "Result", value: text.replace(/^📦\s\*\*Etsy[\s\S]+?Rate\*\*\n/, "").trim() }
+  )
+  .setFooter({ text: "Eneocare Shipping Tool • 2025" })
+  .setTimestamp();
+
 
     await interaction.editReply({ embeds: [embed] });
   } catch (error) {
